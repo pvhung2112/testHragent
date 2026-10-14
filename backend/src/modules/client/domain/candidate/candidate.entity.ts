@@ -211,7 +211,7 @@ export class CandidateEntity {
     return new CandidateEntity(props);
   }
 
-  public update(data: ICandidateProps, cvLink?: unknown, avatarLink?: unknown): void {
+  public update(data: ICandidateProps, cvLink?: string, avatarLink?: string): void {
     if (data.objective) this.objective = data.objective;
     if (data.fullTextContent) this.fullTextContent = data.fullTextContent;
 
@@ -221,8 +221,8 @@ export class CandidateEntity {
       this.personal.githubLink = data.personal.githubLink ?? this.personal.githubLink;
     }
 
-    if (cvLink) this.personal.cvLink = cvLink as string;
-    if (avatarLink) this.personal.avatar = avatarLink as string;
+    if (cvLink) this.personal.cvLink = cvLink;
+    if (avatarLink) this.personal.avatar = avatarLink;
 
     if (data.educations && data.educations.length > 0) {
       this.educations = data.educations.map((edu) => ({

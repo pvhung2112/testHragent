@@ -1,12 +1,12 @@
-import { VerificationEntity, IVerificationProps } from "../../../domain/verifycation";
+import { VerificationEntity, IVerificationProps, IVerifyCandidateInputDTO } from "../../../domain/verifycation";
 import { IVerificationRepository } from "../../../application/ports/repositories/verification.interface";
 
 export class VerifyCandidateUseCase {
   constructor(
     private readonly candidateRepo: IVerificationRepository,
-  ) { }
+  ) {}
 
-  async execute(candidateID: string, dataVerification: any): Promise<IVerificationProps> {
+  async execute(candidateID: string, dataVerification: IVerifyCandidateInputDTO): Promise<IVerificationProps> {
     const verification = VerificationEntity.create({
       ...dataVerification,
       candidateId: candidateID,

@@ -5,5 +5,5 @@ export interface IUploadFile {
 }
 
 export interface IUploadService {
-  uploadCloud(files: IUploadFile[]): Promise<(string | unknown)[]>;
+  uploadCloud(files: IUploadFile[]): Promise<string[]>;
 }

@@ -1,4 +1,4 @@
-import type { IVerificationProps } from "./verification.type";
+import type { IVerificationProps, IProbedProject } from "./verification.type";
 
 export class VerificationEntity {
   private id?: string;
@@ -11,7 +11,7 @@ export class VerificationEntity {
   private githubStars: number;
   private topLanguages: string[];
   private school?: string;
-  private probedProjects?: any;
+  private probedProjects?: IProbedProject[];
   private aiReasoning?: string;
   private createdAt?: Date;
   private updatedAt?: Date;

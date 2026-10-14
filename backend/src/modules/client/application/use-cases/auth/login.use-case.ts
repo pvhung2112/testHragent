@@ -13,11 +13,10 @@ export class LoginUseCase {
     private readonly authRepo: IAuth,
     private readonly passService: IPasswordService,
     private readonly tokService: ITokenService,
-  ) { }
+  ) {}
 
   async execute(email: string, password: string): Promise<ILoginResult> {
     const user = await this.authRepo.findUserByEmail(email);
-
     if (!user) throw new Error('Email không tồn tại!');
 
     if (!user.isActive()) throw new Error('Tài khoản đã bị khóa! Vui lòng liên hệ Admin.');

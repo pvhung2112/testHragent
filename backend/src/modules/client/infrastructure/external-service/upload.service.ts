@@ -12,7 +12,7 @@ cloudinary.config({
 import { IUploadService, IUploadFile } from '../../application/ports/services/upload.service';
 
 export class UploadService implements IUploadService {
-  public async uploadCloud(files: IUploadFile[]): Promise<(string | unknown)[]> {
+  public async uploadCloud(files: IUploadFile[]): Promise<string[]> {
     try {
       if (!files || files.length === 0) return [];
 
