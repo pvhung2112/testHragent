@@ -42,7 +42,6 @@ export class UploadCVUseCase {
     let extractedData: any = {};
 
     if (cvFile.mimetype === 'application/pdf' || cvFile.mimetype.startsWith('image/')) {
-      console.log('Đang ném file cho Gemini làm OCR...');
       extractedData = await this.geminiSvc.extractCV(cvFile.buffer, cvFile.mimetype);
     }
 
