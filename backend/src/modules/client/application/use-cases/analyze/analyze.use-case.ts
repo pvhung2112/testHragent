@@ -17,6 +17,10 @@ export class AnalysisUseCase {
   async execute(input: AnalysisInputDto): Promise<AnalysisOutputDto> {
     const { candidateID, jobID } = input;
 
+    if (!jobID || !jobID.trim()) {
+      throw new Error('EX_02: Vui lòng chọn JD (Mô tả công việc) để thực hiện so khớp');
+    }
+
     const existingAnalysis = await this.aiAnalyzeRepo.getAnalysisByCandidateIdAndJobId(candidateID, jobID);
     if (existingAnalysis) {
       return existingAnalysis as AnalysisOutputDto;
@@ -28,10 +32,23 @@ export class AnalysisUseCase {
     const job = await this.jobRepo.getById(jobID);
     if (!job) throw new Error('Không tìm thấy thông tin công việc (Job).');
 
-    const analysisResult = await this.geminiService.analyzeCandidateWithJob(
-      candidate.getDetailProfile(),
-      job.getDetailJob(),
-    );
+    if ((job as any).status === 'CLOSED' || (job as any).isClosed) {
+      throw new Error('JD này đã đóng tuyển dụng. Vui lòng chọn JD đang mở tuyển');
+    }
+
+    let analysisResult: any;
+    try {
+      analysisResult = await this.geminiService.analyzeCandidateWithJob(
+        candidate.getDetailProfile(),
+        job.getDetailJob(),
+      );
+    } catch (err: any) {
+      if (err.message?.toLowerCase().includes('timeout') || err.message?.includes('EX_03')) {
+        throw new Error('EX_03: Máy chủ AI phản hồi chậm quá thời gian cho phép (Timeout)');
+      }
+      throw err;
+    }
+
     if (!analysisResult) throw new Error('Lỗi khi gọi AI phân tích dữ liệu.');
 
     const analysis = AnalysisEntity.create({
