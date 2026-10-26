@@ -4,9 +4,10 @@ import type { IUploadService } from '../../../application/ports/services/upload.
 import type { IAIService } from '../../../application/ports/services/ai.service';
 import { CandidateEntity } from '../../../domain/candidate/candidate.entity';
 import type { ICandidateDetailProfile, ICandidateProps } from '../../../domain/candidate';
+import { validateCVFile, validateCandidateFormData } from './upload-cv.validator';
 
 export interface IOutputDTO {
-  candidate: ICandidateDetailProfile
+  candidate: ICandidateDetailProfile;
 }
 
 export class UploadCVUseCase {
@@ -15,7 +16,7 @@ export class UploadCVUseCase {
     private readonly jobRepo: IJobReadRepo,
     private readonly uploadSvc: IUploadService,
     private readonly geminiSvc: IAIService,
-  ) { }
+  ) {}
 
   async execute(
     userID: string,
@@ -23,7 +24,12 @@ export class UploadCVUseCase {
     cvFile: Express.Multer.File,
     avatarFile?: Express.Multer.File,
   ): Promise<IOutputDTO> {
+    if (!userID || !userID.trim()) {
+      throw new Error('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại');
+    }
+
     if (!cvFile) throw new Error('No file uploaded');
+    validateCVFile(cvFile);
 
     const job = await this.jobRepo.getById(jobID);
     if (!job) throw new Error('Công việc không đúng');
@@ -41,8 +47,20 @@ export class UploadCVUseCase {
 
     let extractedData: any = {};
 
-    if (cvFile.mimetype === 'application/pdf' || cvFile.mimetype.startsWith('image/')) {
-      extractedData = await this.geminiSvc.extractCV(cvFile.buffer, cvFile.mimetype);
+    try {
+      if (
+        cvFile.mimetype === 'application/pdf' ||
+        cvFile.mimetype.startsWith('image/') ||
+        cvFile.mimetype.includes('word') ||
+        cvFile.mimetype.includes('officedocument')
+      ) {
+        extractedData = await this.geminiSvc.extractCV(cvFile.buffer, cvFile.mimetype);
+      }
+    } catch (err: any) {
+      if (err.message?.toLowerCase().includes('timeout') || err.message?.includes('EX_02')) {
+        throw new Error('EX_02: Quá thời gian phản hồi từ máy chủ AI (Timeout)');
+      }
+      throw err;
     }
 
     const personalData = extractedData.personal as Record<string, any>;
@@ -51,6 +69,18 @@ export class UploadCVUseCase {
     if (!email) {
       throw new Error('không thể trích xuất được Email từ CV ');
     }
+
+    const validated = validateCandidateFormData({
+      fullName: personalData.name !== undefined ? personalData.name : personalData.fullName,
+      email: email,
+      phone: personalData.phone,
+      skills: extractedData.skills,
+    });
+
+    personalData.fullName = validated.fullName;
+    personalData.name = validated.fullName;
+    personalData.phone = validated.phone;
+    extractedData.skills = validated.skills;
 
     let newCandidate: CandidateEntity | null = null;
     let candidate = await this.candidateRepo.findByEmail(email);
@@ -65,9 +95,12 @@ export class UploadCVUseCase {
         jobID: jobID,
         personal: {
           ...extractedData.personal,
+          fullName: validated.fullName,
+          name: validated.fullName,
+          phone: validated.phone,
           cvLink: cvLink,
-          avatar: avatarLink
-        }
+          avatar: avatarLink,
+        },
       };
       const candidate = CandidateEntity.create(candidateProps);
       newCandidate = await this.candidateRepo.create(candidate);
@@ -76,7 +109,7 @@ export class UploadCVUseCase {
     if (!newCandidate) throw new Error('Lưu hồ sơ ứng viên thất bại!');
 
     return {
-      candidate: newCandidate.getDetailProfile()
+      candidate: newCandidate.getDetailProfile(),
     };
   }
 }
