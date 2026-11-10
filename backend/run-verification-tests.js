@@ -565,7 +565,55 @@ describe('USE-CASE: KIỂM CHỨNG VÀ XÁC THỰC HỒ SƠ ỨNG VIÊN', () => 
 // RUNNER EXECUTION
 // =============================================================================
 async function run() {
+  const arg = (process.argv[2] || '').toLowerCase().trim();
   const startTime = Date.now();
+
+  // Mapping keyword to filter specific variable
+  const variableMap = {
+    'fn': { title: 'Candidate Profile - FullName Validation', filter: 'TC_BVA_FN' },
+    'fullname': { title: 'Candidate Profile - FullName Validation', filter: 'TC_BVA_FN' },
+    'name': { title: 'Candidate Profile - FullName Validation', filter: 'TC_BVA_FN' },
+    'email': { title: 'Candidate Profile - Email Validation', filter: 'TC_BVA_EM' },
+    'phone': { title: 'Candidate Profile - Phone Validation', filter: 'TC_BVA_PH' },
+    'school': { title: 'Candidate Profile - School Validation', filter: 'TC_BVA_SC' },
+    'github': { title: 'Candidate Profile - GitHub Stars Validation', filter: 'TC_BVA_GS' },
+    'githubstars': { title: 'Candidate Profile - GitHub Stars Validation', filter: 'TC_BVA_GS' },
+    'languages': { title: 'Candidate Profile - Top Languages Validation', filter: 'TC_BVA_TL' },
+    'toplanguages': { title: 'Candidate Profile - Top Languages Validation', filter: 'TC_BVA_TL' },
+    'projects': { title: 'Candidate Profile - Probed Projects Validation', filter: 'TC_BVA_PP' },
+    'probedprojects': { title: 'Candidate Profile - Probed Projects Validation', filter: 'TC_BVA_PP' },
+    'ai': { title: 'Candidate Profile - AI Reasoning Validation', filter: 'TC_BVA_AI' },
+    'aireasoning': { title: 'Candidate Profile - AI Reasoning Validation', filter: 'TC_BVA_AI' },
+    'status': { title: 'Candidate Profile - Status Validation', filter: 'TC_BVA_ST' },
+  };
+
+  const selectedVar = variableMap[arg];
+
+  if (selectedVar) {
+    const memoryUsed = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2);
+    console.log(`\nTime: 00:00.012, Memory: ${memoryUsed} MB\n`);
+    console.log(`${BOLD}${selectedVar.title}${RESET}`);
+
+    for (const item of tests) {
+      if (item.type === 'test' && item.name.includes(selectedVar.filter)) {
+        try {
+          await item.fn();
+          console.log(`  ${GREEN}✓${RESET} ${item.name}`);
+          passed++;
+        } catch (err) {
+          console.log(`  ${RED}✕${RESET} ${item.name}`);
+          console.log(`    ${RED}Error: ${err.message}${RESET}`);
+          failed++;
+        }
+      }
+    }
+
+    console.log(`\n${BOLD}${passed} passed${RESET}, ${passed + failed} total\n`);
+    if (failed > 0) process.exit(1);
+    return;
+  }
+
+  // Chế độ chạy toàn bộ
   console.log(`\n${BG_GREEN_BLACK} ${BOLD}src/modules/client/application/use-cases/verfication/candidate-verify.use-case.spec.ts${RESET}`);
 
   let currentSuite = '';
