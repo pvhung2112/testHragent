@@ -85,7 +85,7 @@ describe('USE-CASE: THÊM TÀI KHOẢN NGƯỜI DÙNG (Lê Quý Dương)', () =>
 
       const result = await useCase.execute(validInput);
 
-      expect(result.createdAt).toBeInstanceOf(Date);
+      expect(result.createdAt instanceof Date).toBe(true);
     });
   });
 
