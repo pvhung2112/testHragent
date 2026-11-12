@@ -405,6 +405,9 @@ async function runSuite() {
     'email': { title: 'User Service - Email Validation (Lê Quý Dương)', keywords: ['Email'] },
     'password': { title: 'User Service - Password Validation (Lê Quý Dương)', keywords: ['Mật khẩu', 'mật khẩu', 'password'] },
     'pass': { title: 'User Service - Password Validation (Lê Quý Dương)', keywords: ['Mật khẩu', 'mật khẩu', 'password'] },
+    'ham': { title: 'Kiểm thử đơn vị Hàm Thêm - CreateUserUseCase.execute (C1, C2, C3)', keywords: ['TC_WB_C1', 'TC_WB_C3', 'TC_UC01_001', 'TC_UC01_010'] },
+    'execute': { title: 'Kiểm thử đơn vị Hàm Thêm - CreateUserUseCase.execute (C1, C2, C3)', keywords: ['TC_WB_C1', 'TC_WB_C3', 'TC_UC01_001', 'TC_UC01_010'] },
+    'c1c2c3': { title: 'Kiểm thử đơn vị Hộp trắng Hàm Thêm (C1, C2, C3)', keywords: ['TC_WB_C1', 'TC_WB_C3'] },
   };
 
   const selected = varMap[arg];
@@ -417,7 +420,7 @@ async function runSuite() {
     let total = 0;
     for (const group of createUserSuite.groups) {
       for (const test of group.tests) {
-        const matches = selected.keywords.some(k => test.name.includes(k));
+        const matches = selected.keywords.some(k => test.name.includes(k) || test.id.includes(k));
         if (matches) {
           total++;
           try {
